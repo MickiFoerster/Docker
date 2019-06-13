@@ -51,8 +51,6 @@ RUN mkdir ${LLVM_CROSS_BUILD} && \
           -DLLDB_TEST_ARCH=powerpc-linux-gnu \
           -DLLVM_DEFAULT_TARGET_TRIPLE=powerpc-unknown-linux-gnu \
           -DCMAKE_BUILD_TYPE=Release \
-          -DLLVM_TEMPORARILY_ALLOW_OLD_TOOLCHAIN=True \
-          -DLLVM_ENABLE_THREADS=ON \
           -DCMAKE_INSTALL_PREFIX=${LLVM_CROSS_INSTALL} \
           ${LLVM_SRC} && \
     ninja && \
