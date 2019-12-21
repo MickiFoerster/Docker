@@ -46,7 +46,8 @@ RUN apt-get install -y texinfo
 ENV \
  TARGET=aarch64-linux \
  ARCH=arm64  \
- MAKE="make -j24"
+ MAKE="make -j24" \
+ CFLAGS="-Wimplicit-fallthrough=0 -Wno-unused-value -Wno-pointer-compare -Wno-unused-const-variable -Wno-int-in-bool-context -Wno-shift-negative-value "
 
 COPY 001-binutils.patch /tmp/
 
@@ -55,7 +56,7 @@ RUN \
 patch -p0 < 001-binutils.patch  && \
 mkdir build-binutils && \
 cd build-binutils && \
-CFLAGS="-Wimplicit-fallthrough=0 -Wno-unused-value -Wno-pointer-compare -Wno-unused-const-variable -Wno-int-in-bool-context -Wno-shift-negative-value " ../binutils-2.24/configure --prefix=/opt/cross --target=${TARGET} --disable-multilib  && \
+env CFLAGS="${CFLAGS}" ../binutils-2.24/configure --prefix=/opt/cross --target=${TARGET} --disable-multilib  && \
 ${MAKE} && \
 make install && \
 cd ..
@@ -65,9 +66,10 @@ RUN cd linux-3.17.2 && \
 make ARCH=${ARCH} INSTALL_HDR_PATH=/opt/cross/${TARGET} headers_install && \
 cd ..
 
+ENV CFLAGS="${CFLAGS} -Wno-nonull"
 # C/C++ compiler
 RUN mkdir -p build-gcc && \
 cd build-gcc && \
-CFLAGS="-Wno-nonull" ../gcc-4.9.2/configure --prefix=/opt/cross --target=${TARGET} --enable-languages=c,c++ --disable-multilib && \
+env CFLAGS="${CFLAGS}" CXXFLAGS="${CFLAGS}" ../gcc-4.9.2/configure --prefix=/opt/cross --target=${TARGET} --enable-languages=c,c++ --disable-multilib && \
 ${MAKE} all-gcc && \
 make install-gcc 
