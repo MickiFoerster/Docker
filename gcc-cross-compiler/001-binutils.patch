@@ -1,0 +1,29 @@
+--- binutils-2.24/bfd/reloc.c	2019-12-21 20:20:32.216239109 +0000
++++ binutils-2.24/bfd/reloc.c	2019-12-21 20:21:26.276193677 +0000
+@@ -6986,12 +6986,15 @@
+ 	{
+ 	case 64:
+ 	  BFD_FAIL ();
++	  break;
+ 	case 32:
+ 	  return &bfd_howto_32;
+ 	case 16:
+ 	  BFD_FAIL ();
++	  break;
+ 	default:
+ 	  BFD_FAIL ();
++	  break;
+ 	}
+     default:
+       BFD_FAIL ();
+--- binutils-2.24/configure	2013-11-08 10:13:48.000000000 +0000
++++ binutils-2.24/configure	2019-12-21 21:28:41.398299534 +0000
+@@ -14514,6 +14514,7 @@
+   enable_werror=no
+ fi
+ fi
++enable_werror=no
+ 
+ case ${enable_werror} in
+   yes) stage2_werror_flag="--enable-werror-always" ;;
+
