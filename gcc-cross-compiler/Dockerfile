@@ -66,10 +66,14 @@ RUN cd linux-3.17.2 && \
 make ARCH=${ARCH} INSTALL_HDR_PATH=/opt/cross/${TARGET} headers_install && \
 cd ..
 
-ENV CFLAGS="${CFLAGS} -Wno-nonull"
+ENV CFLAGS="${CFLAGS} -Wno-nonnull -Wno-literal-suffix -Wno-switch -Wno-dangling-else -Wno-error -Wno-switch-bool -Wno-misleading-indentation"
 # C/C++ compiler
 RUN mkdir -p build-gcc && \
 cd build-gcc && \
-env CFLAGS="${CFLAGS}" CXXFLAGS="${CFLAGS}" ../gcc-4.9.2/configure --prefix=/opt/cross --target=${TARGET} --enable-languages=c,c++ --disable-multilib && \
-${MAKE} all-gcc && \
+env CFLAGS="${CFLAGS}" CXXFLAGS="${CFLAGS}" ../gcc-4.9.2/configure --prefix=/opt/cross --target=${TARGET} --enable-languages=c,c++ --disable-multilib 
+
+COPY 002-gcc.patch /tmp/
+RUN patch -p0 < 002-gcc.patch  
+RUN cd build-gcc && \
+make -j1  all-gcc && \
 make install-gcc 
