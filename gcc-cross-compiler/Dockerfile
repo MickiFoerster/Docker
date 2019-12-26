@@ -1,14 +1,24 @@
 # building a cross compiler
 # Documentation followed by https://preshing.com/20141119/how-to-build-a-gcc-cross-compiler/
 # 
-FROM ubuntu:18.04
+FROM ubuntu:14.04
 
 WORKDIR /tmp
 
 RUN apt-get update && \
 apt-get upgrade -y && \
-apt-get install -y wget && \
-apt-get clean && \
+apt-get install \
+  wget \
+  xz-utils \
+  gcc \
+  g++ \
+  make \
+  gawk \
+  vim \
+  git \
+  texinfo \
+  -y && \
+  apt-get clean && \
 wget http://ftpmirror.gnu.org/binutils/binutils-2.24.tar.gz && \
 wget http://ftpmirror.gnu.org/gcc/gcc-4.9.2/gcc-4.9.2.tar.gz && \
 wget https://www.kernel.org/pub/linux/kernel/v3.x/linux-3.17.2.tar.xz && \
@@ -20,15 +30,6 @@ wget ftp://gcc.gnu.org/pub/gcc/infrastructure/isl-0.12.2.tar.bz2 && \
 wget ftp://gcc.gnu.org/pub/gcc/infrastructure/cloog-0.18.1.tar.gz && \
 echo "source code downloaded successful"
 
-RUN apt-get install \
-  xz-utils \
-  gcc \
-  g++ \
-  make \
-  gawk \
-  vim \
-  git \
-  -y 
 
 RUN \
 for f in *.tar*; do tar xf $f; done && \
@@ -41,19 +42,20 @@ ln -s ../cloog-0.18.1 cloog && \
 cd .. && \
 mkdir -p /opt/cross 
 
-RUN apt-get install -y texinfo 
-
 ENV \
  TARGET=aarch64-linux \
  ARCH=arm64  \
  MAKE="make -j24" \
- CFLAGS="-Wimplicit-fallthrough=0 -Wno-unused-value -Wno-pointer-compare -Wno-unused-const-variable -Wno-int-in-bool-context -Wno-shift-negative-value "
+  PATH=/opt/cross/bin:$PATH
+ 
+# CFLAGS="-Wimplicit-fallthrough=0 -Wno-unused-value -Wno-pointer-compare -Wno-unused-const-variable -Wno-int-in-bool-context -Wno-shift-negative-value "
+# ENV CFLAGS="${CFLAGS} -Wno-nonnull -Wno-literal-suffix -Wno-switch -Wno-dangling-else -Wno-error -Wno-switch-bool -Wno-misleading-indentation"
 
-COPY 001-binutils.patch /tmp/
 
-# binutils
+# 1. binutils
+# COPY 001-binutils.patch /tmp/
+# patch -p0 < 001-binutils.patch 
 RUN \
-patch -p0 < 001-binutils.patch  && \
 mkdir build-binutils && \
 cd build-binutils && \
 env CFLAGS="${CFLAGS}" ../binutils-2.24/configure --prefix=/opt/cross --target=${TARGET} --disable-multilib  && \
@@ -61,19 +63,43 @@ ${MAKE} && \
 make install && \
 cd ..
 
-# linux kernel headers
+# 2. linux kernel headers
 RUN cd linux-3.17.2 && \
-make ARCH=${ARCH} INSTALL_HDR_PATH=/opt/cross/${TARGET} headers_install && \
+${MAKE} ARCH=${ARCH} INSTALL_HDR_PATH=/opt/cross/${TARGET} headers_install && \
 cd ..
 
-ENV CFLAGS="${CFLAGS} -Wno-nonnull -Wno-literal-suffix -Wno-switch -Wno-dangling-else -Wno-error -Wno-switch-bool -Wno-misleading-indentation"
-# C/C++ compiler
+# 3. C/C++ compiler
+# COPY 002-gcc.patch /tmp/
+# patch -p0 < 002-gcc.patch  
 RUN mkdir -p build-gcc && \
-cd build-gcc && \
-env CFLAGS="${CFLAGS}" CXXFLAGS="${CFLAGS}" ../gcc-4.9.2/configure --prefix=/opt/cross --target=${TARGET} --enable-languages=c,c++ --disable-multilib 
+  cd build-gcc && \
+  env CFLAGS="${CFLAGS}" CXXFLAGS="${CFLAGS}" ../gcc-4.9.2/configure --prefix=/opt/cross --target=${TARGET} --enable-languages=c,c++ --disable-multilib && \
+  ${MAKE} all-gcc && \
+  make install-gcc && \
+  cd ..
 
-COPY 002-gcc.patch /tmp/
-RUN patch -p0 < 002-gcc.patch  
+# 4. Standard C Library Headers and Startup Files
+RUN  mkdir -p build-glibc && \
+  cd build-glibc  && \
+  ../glibc-2.20/configure --prefix=/opt/cross/aarch64-linux --build=$MACHTYPE --host=aarch64-linux --target=aarch64-linux --with-headers=/opt/cross/aarch64-linux/include --disable-multilib libc_cv_forced_unwind=yes  && \
+  make install-bootstrap-headers=yes install-headers  && \
+  make -j4 csu/subdir_lib  && \
+  install csu/crt1.o csu/crti.o csu/crtn.o /opt/cross/aarch64-linux/lib  && \
+  aarch64-linux-gcc -nostdlib -nostartfiles -shared -x c /dev/null -o /opt/cross/aarch64-linux/lib/libc.so  && \
+  touch /opt/cross/aarch64-linux/include/gnu/stubs.h  && \
+  cd ..  && \
+  echo "standard C library headers and libc.so and stubs.h are successfully built"
+
+# 5. Compiler Support Library
+
 RUN cd build-gcc && \
-make -j1  all-gcc && \
-make install-gcc 
+make -j4 all-target-libgcc  &&\
+make install-target-libgcc  &&\
+cd ..
+
+# 6. Standard C Library
+
+RUN cd build-glibc  &&\
+make -j1  &&\
+make install &&\
+cd ..
