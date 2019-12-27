@@ -45,8 +45,8 @@ mkdir -p /opt/cross
 ENV \
  TARGET=aarch64-linux \
  ARCH=arm64  \
- MAKE="make -j24" \
-  PATH=/opt/cross/bin:$PATH
+ PATH=/opt/cross/bin:$PATH \
+ MAKE="make -j1" 
  
 # CFLAGS="-Wimplicit-fallthrough=0 -Wno-unused-value -Wno-pointer-compare -Wno-unused-const-variable -Wno-int-in-bool-context -Wno-shift-negative-value "
 # ENV CFLAGS="${CFLAGS} -Wno-nonnull -Wno-literal-suffix -Wno-switch -Wno-dangling-else -Wno-error -Wno-switch-bool -Wno-misleading-indentation"
@@ -83,7 +83,7 @@ RUN  mkdir -p build-glibc && \
   cd build-glibc  && \
   ../glibc-2.20/configure --prefix=/opt/cross/aarch64-linux --build=$MACHTYPE --host=aarch64-linux --target=aarch64-linux --with-headers=/opt/cross/aarch64-linux/include --disable-multilib libc_cv_forced_unwind=yes  && \
   make install-bootstrap-headers=yes install-headers  && \
-  make -j4 csu/subdir_lib  && \
+  ${MAKE} csu/subdir_lib  && \
   install csu/crt1.o csu/crti.o csu/crtn.o /opt/cross/aarch64-linux/lib  && \
   aarch64-linux-gcc -nostdlib -nostartfiles -shared -x c /dev/null -o /opt/cross/aarch64-linux/lib/libc.so  && \
   touch /opt/cross/aarch64-linux/include/gnu/stubs.h  && \
@@ -93,13 +93,20 @@ RUN  mkdir -p build-glibc && \
 # 5. Compiler Support Library
 
 RUN cd build-gcc && \
-make -j4 all-target-libgcc  &&\
+${MAKE} all-target-libgcc  &&\
 make install-target-libgcc  &&\
 cd ..
 
 # 6. Standard C Library
 
 RUN cd build-glibc  &&\
-make -j1  &&\
+${MAKE}  &&\
 make install &&\
 cd ..
+
+# 7. Standard C++ Library
+
+RUN cd build-gcc && \
+  ${MAKE}  && \
+  make install && \
+  cd ..
