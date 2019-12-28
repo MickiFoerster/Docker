@@ -43,8 +43,8 @@ cd .. && \
 mkdir -p /opt/cross 
 
 ENV \
- TARGET=ppc-linux \
- ARCH=ppc  \
+ ARCH=powerpc  \
+ TARGET=powerpc-linux \
  PATH=/opt/cross/bin:$PATH \
  MAKE="make -j1" 
  
@@ -77,12 +77,12 @@ RUN mkdir -p build-gcc && \
 # 4. Standard C Library Headers and Startup Files
 RUN  mkdir -p build-glibc && \
   cd build-glibc  && \
-  ../glibc-2.20/configure --prefix=/opt/cross/ppc-linux --build=$MACHTYPE --host=ppc-linux --target=ppc-linux --with-headers=/opt/cross/ppc-linux/include --disable-multilib libc_cv_forced_unwind=yes  && \
+  ../glibc-2.20/configure --prefix=/opt/cross/${ARCH}-linux --build=$MACHTYPE --host=${ARCH}-linux --target=${ARCH}-linux --with-headers=/opt/cross/${ARCH}-linux/include --disable-multilib libc_cv_forced_unwind=yes  && \
   make install-bootstrap-headers=yes install-headers  && \
   ${MAKE} csu/subdir_lib  && \
-  install csu/crt1.o csu/crti.o csu/crtn.o /opt/cross/ppc-linux/lib  && \
-  ppc-linux-gcc -nostdlib -nostartfiles -shared -x c /dev/null -o /opt/cross/ppc-linux/lib/libc.so  && \
-  touch /opt/cross/ppc-linux/include/gnu/stubs.h  && \
+  install csu/crt1.o csu/crti.o csu/crtn.o /opt/cross/${ARCH}-linux/lib  && \
+  ${ARCH}-linux-gcc -nostdlib -nostartfiles -shared -x c /dev/null -o /opt/cross/${ARCH}-linux/lib/libc.so  && \
+  touch /opt/cross/${ARCH}-linux/include/gnu/stubs.h  && \
   cd ..  && \
   echo "standard C library headers and libc.so and stubs.h are successfully built"
 
