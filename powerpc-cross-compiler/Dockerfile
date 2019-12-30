@@ -11,7 +11,8 @@ ENV \
  PATH=/opt/cross/bin:$PATH \
  MAKE="make -j1"  \
  GLIBC=glibc-2.19 \
- GCCVERSION=gcc-4.9.4
+ GCCVERSION=gcc-4.9.4 \
+ BINUTILS=binutils-2.25.1
 
 RUN cd /bin && ln -sf bash sh && echo "redirect sh to bash"  && cd - && \
 apt-get update && \
@@ -29,7 +30,7 @@ apt-get install \
   texinfo \
   -y && \
   apt-get clean && \
-wget http://ftpmirror.gnu.org/binutils/binutils-2.24.tar.gz && \
+wget http://ftpmirror.gnu.org/binutils/${BINUTILS}.tar.gz && \
 wget http://ftpmirror.gnu.org/gcc/${GCCVERSION}/${GCCVERSION}.tar.gz && \
 wget https://www.kernel.org/pub/linux/kernel/v3.x/linux-3.17.2.tar.xz && \
 wget http://ftpmirror.gnu.org/glibc/${GLIBC}.tar.xz && \
@@ -55,7 +56,7 @@ mkdir -p /opt/cross
 RUN \
 mkdir build-binutils && \
 cd build-binutils && \
-env CFLAGS="${CFLAGS}" ../binutils-2.24/configure --prefix=/opt/cross --target=${TARGET} --disable-multilib  && \
+env CFLAGS="${CFLAGS}" ../${BINUTILS}/configure --prefix=/opt/cross --target=${TARGET} --disable-multilib  && \
 ${MAKE} && \
 make install && \
 cd ..
