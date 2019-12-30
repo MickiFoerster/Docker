@@ -11,7 +11,7 @@ ENV \
  PATH=/opt/cross/bin:$PATH \
  MAKE="make -j1"  \
  GLIBC=glibc-2.19 \
- GCCVERSION=gcc-4.9.4 \
+ GCCVERSION=gcc-5.5.0 \
  BINUTILS=binutils-2.25.1
 
 RUN cd /bin && ln -sf bash sh && echo "redirect sh to bash"  && cd - && \
