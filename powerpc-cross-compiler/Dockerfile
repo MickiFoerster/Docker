@@ -10,7 +10,8 @@ ENV \
  TARGET=powerpc-linux \
  PATH=/opt/cross/bin:$PATH \
  MAKE="make -j1"  \
- GLIBC=glibc-2.19
+ GLIBC=glibc-2.19 \
+ GCCVERSION=gcc-4.9.4
 
 RUN cd /bin && ln -sf bash sh && echo "redirect sh to bash"  && cd - && \
 apt-get update && \
@@ -29,7 +30,7 @@ apt-get install \
   -y && \
   apt-get clean && \
 wget http://ftpmirror.gnu.org/binutils/binutils-2.24.tar.gz && \
-wget http://ftpmirror.gnu.org/gcc/gcc-4.9.2/gcc-4.9.2.tar.gz && \
+wget http://ftpmirror.gnu.org/gcc/${GCCVERSION}/${GCCVERSION}.tar.gz && \
 wget https://www.kernel.org/pub/linux/kernel/v3.x/linux-3.17.2.tar.xz && \
 wget http://ftpmirror.gnu.org/glibc/${GLIBC}.tar.xz && \
 wget http://ftpmirror.gnu.org/mpfr/mpfr-3.1.2.tar.xz && \
@@ -41,7 +42,7 @@ echo "source code downloaded successful"
 
 RUN \
 for f in *.tar*; do tar xf $f; done && \
-cd gcc-4.9.2 && \
+cd ${GCCVERSION} && \
 ln -s ../mpfr-3.1.2 mpfr && \
 ln -s ../gmp-6.0.0 gmp && \
 ln -s ../mpc-1.0.2 mpc && \
@@ -67,7 +68,7 @@ cd ..
 # 3. C/C++ compiler
 RUN mkdir -p build-gcc && \
   cd build-gcc && \
-  env CFLAGS="${CFLAGS}" CXXFLAGS="${CFLAGS}" ../gcc-4.9.2/configure --prefix=/opt/cross --target=${TARGET} --enable-languages=c,c++ --disable-multilib && \
+  env CFLAGS="${CFLAGS}" CXXFLAGS="${CFLAGS}" ../${GCCVERSION}/configure --prefix=/opt/cross --target=${TARGET} --enable-languages=c,c++ --disable-multilib && \
   ${MAKE} all-gcc && \
   make install-gcc && \
   cd ..
