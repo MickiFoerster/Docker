@@ -12,7 +12,7 @@ ENV \
  MAKE="make -j1"  \
  GLIBC=glibc-2.19
 
-RUN cd /bin && ln -sf bash sh && echo "redirect sh to bash"  && \
+RUN cd /bin && ln -sf bash sh && echo "redirect sh to bash"  && cd - && \
 apt-get update && \
 apt-get upgrade -y && \
 apt-get install \
