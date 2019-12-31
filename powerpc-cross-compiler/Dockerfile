@@ -11,7 +11,7 @@ ENV \
  PATH=/opt/cross/bin:$PATH \
  MAKE="make -j1"  \
  GLIBC=glibc-2.19 \
- GCCVERSION=gcc-5.5.0 \
+ GCCVERSION=gcc-9.2.0 \
  BINUTILS=binutils-2.25.1
 
 RUN cd /bin && ln -sf bash sh && echo "redirect sh to bash"  && cd - && \
@@ -31,24 +31,15 @@ apt-get install \
   -y && \
   apt-get clean && \
 wget http://ftpmirror.gnu.org/binutils/${BINUTILS}.tar.gz && \
-wget http://ftpmirror.gnu.org/gcc/${GCCVERSION}/${GCCVERSION}.tar.gz && \
 wget https://www.kernel.org/pub/linux/kernel/v3.x/linux-3.17.2.tar.xz && \
 wget http://ftpmirror.gnu.org/glibc/${GLIBC}.tar.xz && \
-wget http://ftpmirror.gnu.org/mpfr/mpfr-3.1.2.tar.xz && \
-wget http://ftpmirror.gnu.org/gmp/gmp-6.0.0a.tar.xz && \
-wget http://ftpmirror.gnu.org/mpc/mpc-1.0.2.tar.gz && \
-wget ftp://gcc.gnu.org/pub/gcc/infrastructure/isl-0.12.2.tar.bz2 && \
-wget ftp://gcc.gnu.org/pub/gcc/infrastructure/cloog-0.18.1.tar.gz && \
+wget http://ftpmirror.gnu.org/gcc/${GCCVERSION}/${GCCVERSION}.tar.gz  && \
 echo "source code downloaded successful"
 
 RUN \
 for f in *.tar*; do tar xf $f; done && \
 cd ${GCCVERSION} && \
-ln -s ../mpfr-3.1.2 mpfr && \
-ln -s ../gmp-6.0.0 gmp && \
-ln -s ../mpc-1.0.2 mpc && \
-ln -s ../isl-0.12.2 isl && \
-ln -s ../cloog-0.18.1 cloog && \
+./contrib/download_prerequisites && \
 cd .. && \
 mkdir -p /opt/cross 
 
@@ -69,8 +60,8 @@ cd ..
 # 3. C/C++ compiler
 RUN mkdir -p build-gcc && \
   cd build-gcc && \
-  env CFLAGS="${CFLAGS}" CXXFLAGS="${CFLAGS}" ../${GCCVERSION}/configure --prefix=/opt/cross --target=${TARGET} --enable-languages=c,c++ --disable-multilib && \
-  ${MAKE} all-gcc && \
+  env CFLAGS="${CFLAGS}" CXXFLAGS="${CFLAGS}" ../${GCCVERSION}/configure --prefix=/opt/cross --target=${TARGET} --enable-languages=c,c++ --disable-multilib --disable-libsanitizer && \
+  make -j24 all-gcc && \
   make install-gcc && \
   cd ..
 
