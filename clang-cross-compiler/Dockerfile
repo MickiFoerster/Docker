@@ -61,8 +61,8 @@ RUN apt-get install python ninja-build -y && \
     cd z3-z3-4.8.7/ && \
     ./configure && \
     cd build/ && \
-    make -j 24 && \
-    make install && \
+    ${MAKE} && \
+    ${MAKE} install && \
     echo "Z3 solver installed"
 
 
@@ -70,8 +70,10 @@ RUN cd /tmp && \
     mkdir build-native-gcc && \
     cd  build-native-gcc && \
     ../gcc-9.2.0/configure --disable-multilib --disable-libgcj && \
-    make -j 24 all install && \
+    ${MAKE} all install && \
     cd -
+
+RUN apt-get remove g++ gcc  -y && apt-get autoremove -y 
 
 ENV LLVM_CROSS_BUILD=${LLVM_PATH}/clang-cross-bld
 ENV LLVM_CROSS_INSTALL=/opt/powerpc-unknown-linux-gnu-clang 
@@ -85,6 +87,7 @@ RUN mkdir ${LLVM_CROSS_BUILD} && \
           -DLLVM_DEFAULT_TARGET_TRIPLE=powerpc-unknown-linux-gnu \
           -DCMAKE_BUILD_TYPE=Release \
           -DCMAKE_INSTALL_PREFIX=${LLVM_CROSS_INSTALL} \
+          -DCMAKE_EXE_LINKER_FLAGS="-Xlinker -R/usr/local/lib64 -L/usr/local/lib64" \
           ${LLVM_SRC} && \
     ninja && \
     echo "clang cross compiler build successfully" && \
@@ -94,52 +97,4 @@ RUN mkdir ${LLVM_CROSS_BUILD} && \
          
 RUN  cd ${LLVM_CROSS_BUILD} && ninja install 
 
-WORKDIR /tmp
-
-RUN rm -rf ${LLVM_CROSS_BUILD} && \
-    rm -rf ${LLVM_SRC} && \
-    rm -rf ${LLVM_PATH} && \
-    rm -rf /tmp/cmake* && \
-    rm /tmp/v3.1.0.tar.gz
-
-RUN awk "\
-BEGIN { \
-  found = 0; \
-} \
- \
-/^\[binaries\]/ { \
-  found = 1; \
-} \
- \
-/^\[$/ { \
-  found = 0; \
-} \
- \
-/^c\ =\ / { \
-  if (found) { \
-    print \"c = '/usr/local/bin/powerpc-linux-gnu-clang'\"; \
-    skip = 1; \
-  } \
-} \
-/^cpp\ =\ / { \
-  if (found) { \
-    print \"cpp = '/usr/local/bin/powerpc-linux-gnu-clang++'\"; \
-    skip = 1; \
-  } \
-} \
-\
-/.*/ { \
-  if (skip) \
-    skip = 0; \
-  else \
-    print; \
-} \
- \
-" /etc/meson/meson-ppc-l06-build.ini > /tmp/out && \
-  mv /tmp/out /etc/meson/meson-ppc-l06-build.ini 
-
-ENV LLVM_VERSION=
-ENV LLVM_PATH=
-ENV LLVM_SRC=
-ENV LLVM_BUILD=
-ENV LLVM_CROSS_BUILD=
+RUN rm -rf /tmp/*
