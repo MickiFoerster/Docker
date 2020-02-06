@@ -1,0 +1,51 @@
+diff --git a/nptl/Makefile b/nptl/Makefile
+index 266f178..86c203a 100644
+--- a/nptl/Makefile
++++ b/nptl/Makefile
+@@ -342,7 +342,7 @@ endif
+ extra-objs += $(crti-objs) $(crtn-objs)
+ omit-deps += crti crtn
+ 
+-CFLAGS-pt-initfini.s = -g0 -fPIC -fno-inline-functions $(fno-unit-at-a-time)
++CFLAGS-pt-initfini.s = -g0 -fPIC -fno-inline-functions $(fno-unit-at-a-time) -fno-asynchronous-unwind-tables
+ endif
+ 
+ CFLAGS-flockfile.c = -D_IO_MTSAFE_IO
+diff --git a/configure b/configure
+index 999a448..47f8edb 100755
+--- a/configure
++++ b/configure
+@@ -5041,7 +5041,7 @@ $as_echo_n "checking version of $CC... " >&6; }
+   ac_prog_version=`$CC -v 2>&1 | sed -n 's/^.*version \([egcygnustpi-]*[0-9.]*\).*$/\1/p'`
+   case $ac_prog_version in
+     '') ac_prog_version="v. ?.??, bad"; ac_verc_fail=yes;;
+-    3.4* | 4.[0-9]* )
++    3.4* | 4.[0-9]* | 9.[0-9]* | 1[0-9].[0-9]* )
+        ac_prog_version="$ac_prog_version, ok"; ac_verc_fail=no;;
+     *) ac_prog_version="$ac_prog_version, bad"; ac_verc_fail=yes;;
+ 
+diff --git a/csu/Makefile b/csu/Makefile
+index 69e07c7..c7fe397 100644
+--- a/csu/Makefile
++++ b/csu/Makefile
+@@ -93,7 +93,7 @@ omit-deps += $(crtstuff)
+ $(crtstuff:%=$(objpfx)%.o): %.o: %.S $(objpfx)defs.h
+        $(compile.S) -g0 $(ASFLAGS-.os) -o $@
+ 
+-CFLAGS-initfini.s = -g0 -fPIC -fno-inline-functions $(fno-unit-at-a-time)
++CFLAGS-initfini.s = -g0 -fPIC -fno-inline-functions $(fno-unit-at-a-time) -fno-asynchronous-unwind-tables
+ 
+ vpath initfini.c $(sysdirs)
+ 
+diff --git a/sysdeps/powerpc/Makefile b/sysdeps/powerpc/Makefile
+index 616458f..c499616 100644
+--- a/sysdeps/powerpc/Makefile
++++ b/sysdeps/powerpc/Makefile
+@@ -1,6 +1,6 @@
+ # We always want to use the new mnemonic syntax even if we are on a RS6000
+ # machine.
+-+cflags += -mnew-mnemonics
++#+cflags += -mnew-mnemonics
+ 
+ ifeq ($(subdir),gmon)
+ sysdep_routines += ppc-mcount

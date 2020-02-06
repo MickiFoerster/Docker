@@ -1,0 +1,3 @@
+52d51
+< 	XCFLAGS="${XCFLAGS} -mhtm"
+
