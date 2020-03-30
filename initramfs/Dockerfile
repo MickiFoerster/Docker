@@ -8,38 +8,38 @@ WORKDIR /tmp
 
 RUN \
 apt-get update && apt-get upgrade -y && apt-get clean -y && \
-apt-get install -y apt-utils curl xz-utils
-
+apt-get install -y \
+    apt-utils \
+    bc \
+    bison \
+    build-essential \
+    cpio  \
+    curl \
+    flex \
+    git \
+    vim \
+    qemu \
+    xz-utils
 
 RUN \
-${CURL} -O https://cdn.kernel.org/pub/linux/kernel/${LINUX_KERNEL_FOLDER}/linux-${LINUX_KERNEL_VERSION}.tar.xz && \
+curl -O https://cdn.kernel.org/pub/linux/kernel/${LINUX_KERNEL_FOLDER}/linux-${LINUX_KERNEL_VERSION}.tar.xz && \
 tar xf linux-* && \
 ls -l
 
 RUN \
-apt-get install -y build-essential flex bison && \
 mkdir linux-bld && \
 LINUX_BUILD=$PWD/linux-bld && \
 cd linux-${LINUX_KERNEL_VERSION} && \
 make O=${LINUX_BUILD} allnoconfig
 
-RUN \ 
-apt-get install -y git 
-RUN apt-get install -y vim
-
-COPY kernel.patch /tmp/linux-bld
+COPY kernel.cfg /tmp/linux-bld/.config
 RUN \
 cd /tmp/linux-bld && \
-patch -p1 < kernel.patch
-
-RUN apt-get install -y bc
-RUN \
-cd /tmp/linux-bld && \
-make
+make -j 12
 
 ENV BUSYBOX_VERSION=1.31.1
 RUN \
-${CURL} -O https://www.busybox.net/downloads/busybox-${BUSYBOX_VERSION}.tar.bz2 && \
+curl -O https://www.busybox.net/downloads/busybox-${BUSYBOX_VERSION}.tar.bz2 && \
 tar xf busybox-${BUSYBOX_VERSION}.tar* 
 
 ENV \
@@ -52,7 +52,7 @@ cd ${BUSYBOX_SRC} && \
 make O=${BUSYBOX_BUILD} defconfig && \
 cd ${BUSYBOX_BUILD}  && \
 sed -i "s/.*CONFIG_STATIC.*/CONFIG_STATIC=y/" .config && \
-make && \
+make -j 12 && \
 make install
 
 ENV \
@@ -79,12 +79,8 @@ echo "exec /bin/sh" >> ${INITRAMFS_BUILD}/init && \
 chmod +x ${INITRAMFS_BUILD}/init
 
 # Create initramfs archive
-RUN apt-get install cpio && \
-cd ${INITRAMFS_BUILD} && \
+RUN cd ${INITRAMFS_BUILD} && \
 find . -print0 | cpio --null -ov --format=newc | gzip -9 > /tmp/initramfs.cpio.gz
 
 # Start Qemu
-RUN \
-apt-get install -y qemu 
-
 ENTRYPOINT ["/usr/bin/qemu-system-x86_64", "-kernel", "/tmp/linux-bld/arch/x86_64/boot/bzImage", "-initrd", "/tmp/initramfs.cpio.gz", "-nographic", "-append", "'console=ttyS0'"]
