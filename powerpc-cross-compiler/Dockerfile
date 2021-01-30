@@ -1,7 +1,7 @@
 # building a cross compiler
 # Documentation followed by https://preshing.com/20141119/how-to-build-a-gcc-cross-compiler/
 # 
-FROM ubuntu:14.04
+FROM ubuntu:20.04
 
 WORKDIR /tmp
 
@@ -12,13 +12,37 @@ ENV \
  PATH=/opt/cross/bin:$PATH \
  MAKE="make -j1"  \
  GLIBC=glibc-2.19 \
- GCCVERSION=gcc-9.2.0 \
+ GCCVERSION=gcc-10.1.0 \
  BINUTILS=binutils-2.25.1
 
-RUN wget http://ftpmirror.gnu.org/binutils/${BINUTILS}.tar.gz && \
-    wget https://www.kernel.org/pub/linux/kernel/v3.x/linux-${KERNEL}.tar.xz && \
-    wget http://ftpmirror.gnu.org/glibc/${GLIBC}.tar.xz && \
-    wget http://ftpmirror.gnu.org/gcc/${GCCVERSION}/${GCCVERSION}.tar.gz  && \
+RUN \
+	wget -N ftp://ftp.gwdg.de/pub/misc/gcc/releases/gcc-10.1.0/gcc-10.1.0.tar.xz && \
+	&& if [ ! -d gcc-10.1.0 ];then tar xfJ gcc-10.1.0.tar.xz ;fi \
+	&& cd gcc-10.1.0 \
+	&& ./contrib/download_prerequisites \
+	&& rm -rf bld && mkdir bld \
+&& cd bld \
+  && ../configure $(ENABLE_LANGS) --prefix=`pwd` --program-suffix=-10.1.0 --disable-multilib --disable-libgcj \
+	&& nice -n 19 env CC=gcc CXX=g++ make -j $(NPROC) all install \
+&& echo gcc build ready inside `pwd`
+
+
+
+RUN apt-get install -y wget && \
+    wget http://ftpmirror.gnu.org/binutils/${BINUTILS}.tar.gz && \
+    wget https://www.kernel.org/pub/linux/kernel/v3.x/linux-${KERNEL}.tar.gz && \
+    wget http://ftpmirror.gnu.org/glibc/${GLIBC}.tar.gz && \
+    wget http://ftpmirror.gnu.org/gcc/${GCCVERSION}/${GCCVERSION}.tar.gz  
+RUN apt-get update && \
+    apt-get upgrade -y && \
+    apt-get install -y \
+      gcc \
+      g++ \
+      wget \
+      make \
+    && \
+    apt-get clean -y 
+RUN \
     for f in *.tar*; do tar xf $f; done && \
     cd ${GCCVERSION} && \
     ./contrib/download_prerequisites && \
