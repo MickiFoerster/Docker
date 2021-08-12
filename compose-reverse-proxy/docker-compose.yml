@@ -1,11 +1,21 @@
-version: '3'
+version: '3.7'
 
 services:
   proxy:
-    image: nginx:1.13 # this will use the latest version of 1.13.x
+    image: nginx
     ports:
-      - '80:80' # expose 80 on host and sent to 80 in container
+      - '8080:80' # expose 80 on host and sent to 80 in container
     volumes:
       - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
-  web:
-    image: httpd  # this will use httpd:latest
+  backend1:
+    image: nginx
+    ports:
+      - '9991:80'
+  backend2:
+    image: nginx
+    ports:
+      - '9992:80'
+  backend3:
+    image: nginx
+    ports:
+      - '9993:80'
