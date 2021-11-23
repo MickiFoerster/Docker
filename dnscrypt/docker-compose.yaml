@@ -1,0 +1,8 @@
+dnscrypt-proxy:
+    image: gists/dnscrypt-proxy
+    ports:
+        - "10053:5353/udp"
+        - "10053:5353/tcp"
+    volumes:
+        - ./dnscrypt-proxy.toml:/etc/dnscrypt-proxy/dnscrypt-proxy.toml
+    restart: always
