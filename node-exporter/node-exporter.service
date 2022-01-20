@@ -1,0 +1,15 @@
+[Unit]
+Description=Node Exporter
+Requires=docker.service
+After=docker.service
+
+[Service]
+WorkingDirectory=/home/pi/node-exporter
+ExecStart=/usr/bin/docker-compose up
+ExecStop=/usr/bin/docker-compose down -t 30
+TimeoutStopSec=35
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
+
