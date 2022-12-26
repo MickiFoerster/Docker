@@ -17,3 +17,9 @@ ENV PATH=$PATH:/opt/nvim-linux64/bin
 RUN useradd --create-home --skel /etc/skel --shell /bin/bash  micki
 
 USER micki
+
+RUN \
+cd /tmp && \
+curl -o rust-installer.sh --proto '=https' --tlsv1.3 -sSf https://sh.rustup.rs  && \
+chmod a+x rust-installer.sh && \ 
+./rust-installer.sh -y 
