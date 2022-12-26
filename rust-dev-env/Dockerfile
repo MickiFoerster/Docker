@@ -3,7 +3,7 @@ From debian:stable
 RUN \
   apt-get update && \
   apt-get upgrade -y && \
-  DEBIAN_FRONTEND=noninteractive apt-get -y install curl 
+  DEBIAN_FRONTEND=noninteractive apt-get -y install curl gcc g++ lldb lld gdb
 
 RUN \
 cd /tmp && \
@@ -23,3 +23,9 @@ cd /tmp && \
 curl -o rust-installer.sh --proto '=https' --tlsv1.3 -sSf https://sh.rustup.rs  && \
 chmod a+x rust-installer.sh && \ 
 ./rust-installer.sh -y 
+
+
+ENV PATH=$HOME/.cargo/bin:$PATH:/opt/nvim-linux64/bin
+
+RUN \
+$HOME/.cargo/bin/rustup component add rust-analyzer
