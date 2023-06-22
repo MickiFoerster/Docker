@@ -4,7 +4,7 @@ Requires=docker.service
 After=docker.service
 
 [Service]
-WorkingDirectory=/home/pi/node-exporter
+WorkingDirectory=/home/micki/MickiFoerster/Docker/node-exporter
 ExecStart=/usr/bin/docker-compose up
 ExecStop=/usr/bin/docker-compose down -t 30
 TimeoutStopSec=35

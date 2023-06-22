@@ -1,19 +1,93 @@
-version: '3.7'
+version: '3.9'
 
 volumes:
   grafana_data: {}
+  loki_data: {}
+  tempo-vol: {}
 
 services:
+  traefik:
+    image: traefik:latest
+    container_name: traefik
+    command:
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+    ports:
+      - "80:80"
+      - "8088:8080"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    restart: unless-stopped
+    labels:
+      #     - "traefik.enable=true"
+      #     - "traefik.backend=traefik"
+      #     - "traefik.frontend.rule=Host:traefik.localhost"
+      - "traefik.port=8080"
+
+  prometheus:
+    image: prom/prometheus:latest
+    restart: on-failure
+    command:
+      - --config.file=/etc/prometheus.yaml
+      - --web.enable-remote-write-receiver
+      - --enable-feature=exemplar-storage
+    volumes:
+      - ./config/prometheus.yaml:/etc/prometheus.yaml
+    ports:
+      - "9090:9090"
+
   grafana:
     image: grafana/grafana:latest
-    container_name: grafana
     volumes:
+      - ./config/grafana-datasources.yaml:/etc/grafana/provisioning/datasources/datasources.yaml
       - grafana_data:/var/lib/grafana
-      - ./grafana/dashboards:/etc/grafana/provisioning/dashboards
     environment:
-      - GF_SECURITY_ADMIN_USER=admin
-      - GF_SECURITY_ADMIN_PASSWORD=adminpassword
-      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+      - GF_AUTH_DISABLE_LOGIN_FORM=true
+      - GF_FEATURE_TOGGLES_ENABLE=traceqlEditor
     ports:
       - "3000:3000"
-    restart: unless-stopped
+    restart: on-failure
+    labels:
+      - "traefik.enable=true"
+      - "traefik.backend=grafana"
+      - "traefik.http.routers.grafana-service.rule=Host(`grafana.localhost`)"
+      - "traefik.http.services.grafana.loadbalancer.server.port=3000"
+
+  loki:
+    image: grafana/loki:latest
+    volumes:
+      - ./config/loki-config.yaml:/etc/loki/loki-config.yaml
+    command: -config.file=/etc/loki/loki-config.yaml
+    restart: on-failure
+    ports:
+      - "3100:3100"
+  
+  promtail:
+    image: grafana/promtail:latest
+    volumes:
+      - ./config/promtail-config.yaml:/etc/promtail/promtail-config.yaml
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /var/lib/docker/containers:/var/lib/docker/containers
+    command: -config.file=/etc/promtail/promtail-config.yaml
+    restart: on-failure
+  
+  tempo:
+    image: grafana/tempo:latest
+    command: -config.file=/etc/tempo.yaml
+    volumes:
+      - ./config/tempo.yaml:/etc/tempo.yaml
+      - tempo-vol:/tmp/tempo
+    labels:
+      - "traefik.enable=true"
+      - "traefik.backend=tempo"
+      - "traefik.http.routers.tempo-service.rule=Host(`tempo.localhost`)"
+      - "traefik.http.services.tempo.loadbalancer.server.port=3200"
+    ports:
+      - "3200:3200"
+    restart: on-failure
+  
+

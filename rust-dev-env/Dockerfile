@@ -3,7 +3,7 @@ From debian:stable
 RUN \
   apt-get update && \
   apt-get upgrade -y && \
-  DEBIAN_FRONTEND=noninteractive apt-get -y install curl gcc g++ lldb lld gdb
+  DEBIAN_FRONTEND=noninteractive apt-get -y install curl gcc g++ lldb lld gdb git
 
 RUN \
 cd /tmp && \
@@ -29,3 +29,7 @@ ENV PATH=$HOME/.cargo/bin:$PATH:/opt/nvim-linux64/bin
 
 RUN \
 $HOME/.cargo/bin/rustup component add rust-analyzer
+
+RUN \
+git clone --depth 1 https://github.com/wbthomason/packer.nvim\
+ ~/.local/share/nvim/site/pack/packer/start/packer.nvim
