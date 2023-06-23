@@ -57,37 +57,37 @@ services:
       - "traefik.http.routers.grafana-service.rule=Host(`grafana.localhost`)"
       - "traefik.http.services.grafana.loadbalancer.server.port=3000"
 
-  loki:
-    image: grafana/loki:latest
-    volumes:
-      - ./config/loki-config.yaml:/etc/loki/loki-config.yaml
-    command: -config.file=/etc/loki/loki-config.yaml
-    restart: on-failure
-    ports:
-      - "3100:3100"
-  
-  promtail:
-    image: grafana/promtail:latest
-    volumes:
-      - ./config/promtail-config.yaml:/etc/promtail/promtail-config.yaml
-      - /var/run/docker.sock:/var/run/docker.sock
-      - /var/lib/docker/containers:/var/lib/docker/containers
-    command: -config.file=/etc/promtail/promtail-config.yaml
-    restart: on-failure
-  
-  tempo:
-    image: grafana/tempo:latest
-    command: -config.file=/etc/tempo.yaml
-    volumes:
-      - ./config/tempo.yaml:/etc/tempo.yaml
-      - tempo-vol:/tmp/tempo
-    labels:
-      - "traefik.enable=true"
-      - "traefik.backend=tempo"
-      - "traefik.http.routers.tempo-service.rule=Host(`tempo.localhost`)"
-      - "traefik.http.services.tempo.loadbalancer.server.port=3200"
-    ports:
-      - "3200:3200"
-    restart: on-failure
-  
+        #  loki:
+        #    image: grafana/loki:latest
+        #    volumes:
+        #      - ./config/loki-config.yaml:/etc/loki/loki-config.yaml
+        #    command: -config.file=/etc/loki/loki-config.yaml
+        #    restart: on-failure
+        #    ports:
+        #      - "3100:3100"
+        #  
+        #  promtail:
+        #    image: grafana/promtail:latest
+        #    volumes:
+        #      - ./config/promtail-config.yaml:/etc/promtail/promtail-config.yaml
+        #      - /var/run/docker.sock:/var/run/docker.sock
+        #      - /var/lib/docker/containers:/var/lib/docker/containers
+        #    command: -config.file=/etc/promtail/promtail-config.yaml
+        #    restart: on-failure
+        #  
+        #  tempo:
+        #    image: grafana/tempo:latest
+        #    command: -config.file=/etc/tempo.yaml
+        #    volumes:
+        #      - ./config/tempo.yaml:/etc/tempo.yaml
+        #      - tempo-vol:/tmp/tempo
+        #    labels:
+        #      - "traefik.enable=true"
+        #      - "traefik.backend=tempo"
+        #      - "traefik.http.routers.tempo-service.rule=Host(`tempo.localhost`)"
+        #      - "traefik.http.services.tempo.loadbalancer.server.port=3200"
+        #    ports:
+        #      - "3200:3200"
+        #    restart: on-failure
+        #  
 
