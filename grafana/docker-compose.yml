@@ -6,26 +6,6 @@ volumes:
   tempo-vol: {}
 
 services:
-  traefik:
-    image: traefik:latest
-    container_name: traefik
-    command:
-      - "--api.insecure=true"
-      - "--providers.docker=true"
-      - "--providers.docker.exposedbydefault=false"
-      - "--entrypoints.web.address=:80"
-    ports:
-      - "80:80"
-      - "8088:8080"
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-    restart: unless-stopped
-    labels:
-      #     - "traefik.enable=true"
-      #     - "traefik.backend=traefik"
-      #     - "traefik.frontend.rule=Host:traefik.localhost"
-      - "traefik.port=8080"
-
   prometheus:
     image: prom/prometheus:latest
     restart: on-failure
@@ -90,4 +70,24 @@ services:
         #      - "3200:3200"
         #    restart: on-failure
         #  
+
+  #traefik:
+  #  image: traefik:latest
+  #  container_name: traefik
+  #  command:
+  #    - "--api.insecure=true"
+  #    - "--providers.docker=true"
+  #    - "--providers.docker.exposedbydefault=false"
+  #    - "--entrypoints.web.address=:80"
+  #  ports:
+  #    - "80:80"
+  #    - "8088:8080"
+  #  volumes:
+  #    - /var/run/docker.sock:/var/run/docker.sock
+  #  restart: unless-stopped
+  #  labels:
+  #    #     - "traefik.enable=true"
+  #    #     - "traefik.backend=traefik"
+  #    #     - "traefik.frontend.rule=Host:traefik.localhost"
+  #    - "traefik.port=8080"
 
