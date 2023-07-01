@@ -6,6 +6,10 @@ volumes:
   tempo-vol: {}
 
 services:
+  prometheus-playground:
+    image: mickifoerster/prometheus-playground
+    restart: on-failure
+
   prometheus:
     image: prom/prometheus:latest
     restart: on-failure
