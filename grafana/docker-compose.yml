@@ -6,6 +6,10 @@ volumes:
   tempo-vol: {}
 
 services:
+  prometheus-playground:
+    image: mickifoerster/prometheus-playground
+    restart: on-failure
+
   prometheus:
     image: prom/prometheus:latest
     restart: on-failure
@@ -71,23 +75,22 @@ services:
         #    restart: on-failure
         #  
 
-        #jtraefik:
-        #j  image: traefik:latest
-        #j  container_name: traefik
-        #j  command:
-        #j    - "--api.insecure=true"
-        #j    - "--providers.docker=true"
-        #j    - "--providers.docker.exposedbydefault=false"
-        #j    - "--entrypoints.web.address=:80"
-        #j  ports:
-        #j    - "80:80"
-        #j    - "8088:8080"
-        #j  volumes:
-        #j    - /var/run/docker.sock:/var/run/docker.sock
-        #j  restart: unless-stopped
-        #j  labels:
-        #j    #     - "traefik.enable=true"
-        #j    #     - "traefik.backend=traefik"
-        #j    #     - "traefik.frontend.rule=Host:traefik.localhost"
-        #j    - "traefik.port=8080"
-
+  #traefik:
+  #  image: traefik:latest
+  #  container_name: traefik
+  #  command:
+  #    - "--api.insecure=true"
+  #    - "--providers.docker=true"
+  #    - "--providers.docker.exposedbydefault=false"
+  #    - "--entrypoints.web.address=:80"
+  #  ports:
+  #    - "80:80"
+  #    - "8088:8080"
+  #  volumes:
+  #    - /var/run/docker.sock:/var/run/docker.sock
+  #  restart: unless-stopped
+  #  labels:
+  #    #     - "traefik.enable=true"
+  #    #     - "traefik.backend=traefik"
+  #    #     - "traefik.frontend.rule=Host:traefik.localhost"
+  #    - "traefik.port=8080"
